@@ -1,0 +1,111 @@
+Let's consider a random variable X which is N($\mu&=2,$\sigma$ ^2 = 25).
+(We will use standard deviation for our calculations.)
+Let's calculate the value of the pdf at x = 3.
+```{r}
+dnorm(x = 3,mean = 2,sd = 5)
+```
+Let's calculate the value cdf at x =3,i.e P(X $\le$ 3),the probability that X is less than or equal to 3
+```{r}
+pnorm(q =3,mean =2,sd=5)
+```
+Let's calculate the quantile for probability 0.975
+```{r}
+qnorm(p = 0.975,mean = 2,sd = 5)
+```
+Let's generate a random sample of size n=10
+```{r}
+rnorm(n = 10, mean = 2, sd = 5)
+```
+Binomial distribution is parameterized by n and p,R calls this size and prob.Let's find the probability of flipping a coin 10 times and seeing 6 heads,if the probability of heads is 0.75.
+```{r}
+dbinom(x = 6, size = 10,prob = 0.75)
+```
+Hypothesis Tests in R
+One sample t-Test
+suppose a grocery store sells "16 grams" of chevdar.A random sample of 9 boxes was taken and weighed.The weight in grams are stored in a data frame chevdar.
+The company that makes chevdar claims that the average weight of chevdar is at least 16.We will assume the weight of chevdar is normally distributed and use a 0.05 level of significance to test the company claim.
+```{r}
+chevdar = data.frame(weight = c(15.5,16.2,16.1,15.8,15.6,16.0,15.8,15.9,16.2))
+x_bar = mean(chevdar$weight)
+s = sd(chevdar$weight)
+mu_0 = 16
+n = 9
+t = (x_bar - mu_0)/(s/sqrt(n))
+t
+```
+Since it is a one-sided test with a less-than alternative we need the area to the left -1.2 for a t distribution with 8 degrees of freedom.i.e P(t <-1.2)
+```{r}
+pt(t,df = n-1)
+```
+Now we have the p-value of our test,that is greater than the significance level(0.05),so we fail to reject the null hypothesis.
+We could have completed this with one line of R code.
+```{r}
+t.test(x = chevdar$weight, mu = 16, alternative = c("less"),conf.level = 0.95)
+```
+If we want a two-sided interval for the mean weight of chevdar our code would be
+```{r}
+chevdar_test = t.test(chevdar$weight,mu = 16,alternative=c("two.sided"),conf.level = 0.95)
+#we have stored the results thus we can directly access portions of the output from t.test(),we use the names() function.
+names(chevdar_test)
+#we are interested with confidence interval
+chevdar_test$conf.int
+```
+To get the confidence interval manually we can start by getting the missing the critical value,to calculate it in R we use the qt() function.
+```{r}
+qt(0.975,df = 8)
+```
+The 95% CI for the mean weight is calculated by 
+```{r}
+c(mean(chevdar$weight) - qt(0.975, df =8) * sd(chevdar$weight) / sqrt(9),
+  mean(chevdar$weight) + qt(0.975, df = 8) * sd(chevdar$weight) / sqrt(9))
+```
+Two sample t-test
+Assume that the distributions of X and Y are N($/mu$1,$/sigma ^2$) and N($/mu$2,$/sigma ^2$) respectively.
+Given the n= 6 observations of X.
+```{r}
+x = c(70,82,78,74,94,82)
+n = length(x)
+```
+Given m = 8 observations of Y
+```{r}
+y = c(64,72,60,76,80,84,68)
+m = length(y)
+#to test the null hypothesis,we will first calculate the samples means and standard deviations
+x_bar = mean(x)
+s_x = sd(x)
+y_bar = mean(y)
+s_y = sd(y)
+#we then calculate the pooled standard deviation
+s_p = sqrt(((n-1) * s_x ^ 2 + (m - 1) * s_y ^ 2)/(n + m - 2))
+#the t statistic
+t = ((x_bar - y_bar) - 0) / (s_p * sqrt(1/n + 1/m))
+t
+```
+Note that we can calculate the p-value,which is P(t > 1.694637)
+```{r}
+1-pt(t,df = n + m -2)
+```
+We can also perform this test in one line.Two sample t-test can be done with or without an equal variance assumption.
+```{r}
+t.test(x,y,alternative = c("greater"),var.equal = TRUE)
+```
+We have carried out the analysis using two vectors x and y.It's better to use dataframes.
+```{r}
+t_test_data = data.frame(values = c(x, y),
+                         group  = c(rep("A", length(x)), rep("B", length(y))))
+t_test_data
+```
+Now let's perform the test using the t.test() function.
+```{r}
+t.test(values ~ group,data =t_test_data,alternative = c("greater"),var.equal = TRUE )
+```
+
+Simulation
+If D ~ N($/mu$ = 1,$/sigma^2$=0.32)
+P(0 < D < 2) = P(D < 2) -P(D < 0)
+This can be calculated without standardization first.
+```{r}
+pnorm(2, mean =1,sd = sqrt(0.32))-pnorm(0,mean = 1,sd = sqrt(0.32))
+```
+
+
