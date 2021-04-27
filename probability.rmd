@@ -107,5 +107,76 @@ This can be calculated without standardization first.
 ```{r}
 pnorm(2, mean =1,sd = sqrt(0.32))-pnorm(0,mean = 1,sd = sqrt(0.32))
 ```
+We will repeat the process a large number of times.We will use the distribution of the simulated observations of d as an estimate for the true distribution of D.
+```{r}
+set.seed(42)
+num_samples = 10000
+differences = rep(0,num_samples)
+#we set a seed for reproducibility
+#create and set variable num_samples defines the number of repetitions
+##create a variables differences which will store the simulate values d.
+for(s in 1:num_samples){
+  x1 = rnorm(n = 25,mean = 6,sd = 2)
+  x2 = rnorm(n = 25,mean = 5,sd = 2)
+  differences[s] = mean(x1) - mean(x2)
+}
+#To estimate P(0<D<2) we will find the proportion of values of d for N($mu$ = 1,$sigma^2$ =0.32)
+mean(0 < differences & differences < 2)
+#let's look at a histogram of the differences
+hist(differences,breaks = 20,
+     main = "Empirical distribution of D",
+     xlab = "Simulated values of D",
+     col = "blue",
+     border = "red")
+#let's get the sample mean and variance
+mean(differences)
+var(differences)
+```
+This can also accomplish the task with a single line of R.
+```{r}
+set.seed(42)
+diffs = replicate(10000,mean(rnorm(25,6,2)) - mean(rnorm(25,5,2)))
+#to look at the documentation of the replicate function.
+?replicate
+#let's get the mean
+mean(differences == diffs)
+```
+Distribution of a sample mean
+```{r}
+set.seed(1337)
+mu = 10
+sample_size = 50
+samples = 100000
+x_bars = rep(0,samples)
+for(i in 1:samples){
+  x_bars[i] = mean(rpois(sample_size,lambda = mu))
+}
+x_bar_hist = hist(x_bars,breaks = 50,
+                  main = "Histogram of Sample Means",
+                  xlab = "Sample Means")
+```
+We will compare sample statistics from the empirical distribution with their known values based on the parent distribution
+```{r}
+c(mean(x_bars),mu)
+```
+```{r}
+c(var(x_bars),mu/sample_size)
+```
+```{r}
+c(sd(x_bars),sqrt(mu)/sqrt(sample_size))
+```
+We will calculate the proportion of sample means that are within 2 standard deviation of the population mean.
+```{r}
+mean(x_bars > mu - 2 * sqrt(mu) / sqrt(sample_size) &
+       x_bars < mu + 2 * sqrt(mu) / sqrt(sample_size))
+```
+Let's shade the bars that are within two stadard deviations on the mean.
+```{r}
+shading = ifelse(x_bar_hist$breaks > mu - 2 * sqrt(mu)/sqrt(sample_size) &
+                   x_bar_hist$breaks < mu + 2 * sqrt(mu)/sqrt(sample_size),"orange","blue")
+
+x_bar_hist = hist(x_bars,breaks = 50,col = shading,
+                  main = "Histogram of Sample Means,Two Standard Devations",xlab = "Sample Means")
+```
 
 

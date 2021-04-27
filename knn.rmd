@@ -1,0 +1,119 @@
+---
+output:
+  word_document: default
+  html_document: default
+---
+K-nearest neighbors for time-series classification
+The KNN is an algorithm applied to a training data set and results verified on test data set where in this case that's the variables filereads and fileread1 respectively which we shall put them in data frames first and bind them to have one complete data set.
+The knn() identifies the k-nearest neighbors using Euclidean distance where K is the value we shall define.
+We start by importing our data sets using the read.arff() since our files have extension .arff we need the packages rJava and RWeka and load Rweka.
+
+We store our files in variable alldata and view the files.
+```{r}
+install.packages("rJava",dependencies = TRUE)
+install.packages("RWeka")
+library(RWeka)
+
+filereads <- read.arff(file='/home/sheready/Downloads/assignments/LargeKitchenAppliances/LargeKitchenAppliances_TEST.arff')
+
+View(filereads)
+NROW(filereads)
+
+fileread1 <- read.arff(file='/home/sheready/Downloads/assignments/LargeKitchenAppliances/LargeKitchenAppliances_TRAIN.arff')
+
+View(fileread1)
+NROW(fileread1)
+alldata <- rbind(fileread1,filereads)
+NROW(alldata)
+View(alldata)
+
+```
+To know if our data is structured or not,we use the str()
+```{r}
+str(alldata)
+```
+We find that the data is structured with 721 variables and 750 observations.
+
+We remove the first variable from the data sets,since it is a variable 'id' and is unique in nature and doesn't provide useful information.
+```{r}
+alldata <- alldata[-1]
+```
+it i important to normalize our numeric data,since the scale used for the values for each variable might be different thus we transform our values to a common scale.
+
+```{r}
+normalize <- function(x){
+  return((x - min(x) / max(x) - min(x)))
+}
+```
+We shall start by cleaning our data and replacing the missind values with 0 as well as unfactor any values that are represented as factors so as to be able to mormalize our data set.To do this we need the varhandle package.
+Let's normalize our data set,to normalize the training data set we remove the test data set columns from its total columns.
+We confirm if our data has been normalized using the summary().
+We shall then split our into 2 portions data set.
+The set seed to allow us to get the same random sample.
+```{r}
+install.packages("varhandle")
+library("varhandle")
+alldata[alldata == "NA"] <- "0"
+alldata <- unfactor(alldata)
+alldata.subset.n <- as.data.frame(lapply(alldata[1:720],normalize))
+summary(alldata.subset.n)
+NROW(alldata.subset.n)
+set.seed(750)
+
+data.train <- alldata.subset.n[1:600,]
+data.test <- alldata.subset.n[601:750,]
+NROW(data.train)
+
+
+data.train_labels <-alldata[1:600,1]
+data.test_labels <- alldata[601:750,1]
+
+
+```
+ 
+To use knn() we have to install package class and load it.
+
+We shall then be able to use knn() function to classify the data.
+
+```{r}
+install.packages('class')
+library(class)
+
+NROW(data.train_labels)
+
+predict23 <-knn(train = data.train, test = data.test,cl = data.train_labels,k = 23)
+predict23
+
+predict24 <- knn(train = data.train, test= data.test, cl = data.train_labels,k= 24)
+predict24
+
+predict25 <-knn(train = data.train, test = data.test,cl = data.train_labels,k = 25)
+predict25
+
+```
+
+```{r}
+table(predict23 ,data.test_labels)
+predict23
+table(predict24 ,data.test_labels)
+predict24
+table(predict25 ,data.test_labels)
+predict25
+
+```
+
+```{r}
+accuracy23 <- sum(data.test_labels == predict23)/NROW(data.test_labels)
+accuracy23
+accuracy25 <- sum(data.test_labels == predict25)/NROW(data.test_labels)
+accuracy25
+accuracy24 <- sum(data.test_labels == predict24)/NROW(data.test_labels)
+accuracy24
+```
+
+This shows that at K = 23,K=24,K=25 the validation error is 0,because the closest point to any training data point is itself,hence the prediction is accurate with those values of K.
+
+
+
+
+
